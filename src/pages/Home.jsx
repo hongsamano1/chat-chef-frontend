@@ -21,9 +21,10 @@ const Home = () => {
       <div className="h-full flex flex-col">
         {/* TODO:Title 컴포넌트 */}
         <div className="px-2 pt-6">
-          <h1 className="text-4.5xl font-black text-white">쉐프 최윤아, 쉐프 최종현</h1>
+          <h1 className="text-4.5xl font-black text-white">쉐프 윤아, 종현</h1>
           <span className="block text-sm mt-3 text-white break-keep pr-9">
-            최윤아와 최종현이 추천하는 요리, 재료만 선택하면 맛있는 레시피가 나옵니다!
+            윤아와 종현이가 추천하는 요리, 재료만 선택하면 
+            맛있는 레시피가 나옵니다!
           </span>
         </div>
         {/* // TODO:Title 컴포넌트 */}
