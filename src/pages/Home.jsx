@@ -1,11 +1,14 @@
 import React from "react";
 import Button from "../components/Button";
+import { useNavigate } from "react-router-dom";
 
 const Home = () => {
   // logic
+  const histoty = useNavigate()
 
   const handleStart = () => {
     console.log("info페이지로 이동");
+    histoty("/info")
   };
 
   // view
