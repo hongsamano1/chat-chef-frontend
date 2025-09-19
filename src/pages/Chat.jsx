@@ -3,7 +3,7 @@ import MessageBox from "../components/MessageBox";
 import PrevButton from "../components/PrevButton";
 import { MoonLoader } from "react-spinners";
 
-const Chat = () => {
+const Chat = ({ingredientList}) => {
   // logic
 const endpoint = process.env.REACT_APP_SERVER_ADDRESS
 
@@ -11,9 +11,9 @@ const endpoint = process.env.REACT_APP_SERVER_ADDRESS
 
   // TODO: set함수 추가하기
   const [messages, setMessages] = useState([]); // chatGPT와 사용자의 대화 메시지 배열
-  const [isInfoLoading, setIsInfoLoading] = useState(false); // 최초 정보 요청시 로딩
-  const [isMessageLoading, setIsMessageLoading] = useState(true); // 사용자와 메시지 주고 받을때 로딩
-  const [isInfoMessages, setInfoMessages] = useState([]); // 초기 대화 목록 저장
+  const [isInfoLoading, setIsInfoLoading] = useState(true); // 최초 정보 요청시 로딩
+  const [isMessageLoading, setIsMessageLoading] = useState(false); // 사용자와 메시지 주고 받을때 로딩
+  const [infoMessages, setInfoMessages] = useState([]); // 초기 대화 목록 저장
 
 
 
@@ -23,15 +23,61 @@ const endpoint = process.env.REACT_APP_SERVER_ADDRESS
     setValue(value);
   };
 
+// 사용자가 메시지 입력 후 메시지 보낼 때 실행
+const sendMessage = async (userMessage) => {
+  setIsMessageLoading(true);
+  try {
+    const response = await fetch(`${endpoint}/message`, {
+      method: "POST",
+      headers: { "Content-Type": "application/json" },
+      body: JSON.stringify({
+        userMessage,
+        messages: [...infoMessages, ...messages],
+
+      }),
+    });
+
+    const result = await response.json();
+
+    // chatGPT의 답변 추가
+    const { role, content } = result.data;
+    const assistantMessage = { role, content };
+    setMessages((prev) => [...prev, assistantMessage]);
+
+    console.log("🚀 ~ sendMessage ~ result:", result);
+  } catch (error) {
+    console.error(error);
+  } finally {
+    // try 혹은 error 구문 실행후 실행되는 곳
+    setIsMessageLoading(false);
+  }
+};
+
   const hadleSubmit = (event) => {
     event.preventDefault();
     console.log("메시지 보내기");
+
+    //페이지 새로 고침 방지
+    event.preventDefault();
+
+    //메시지 API 호출
+    const userMessage = {
+      role: "user",
+      content: value.trim()
+    }
+    //prev : 배열
+    setMessages((prev) => [...prev, userMessage])
+    sendMessage(userMessage)
+    //input 초기화
+    setValue("")
+
   };
 
 // 초기 세팅
 const sendInfo = async (data) => {
   // async-await짝꿍
   // 백엔드에게 /recipe API요청
+  setIsInfoLoading(true) //로딩 ON
   try {
     const response = await fetch(`${endpoint}/recipe`, {
       method: "POST",
@@ -56,26 +102,29 @@ const sendInfo = async (data) => {
 
     // prev: 배열
     setMessages((prev) => [...prev, { role, content }]);
+
+    //로딩 OFF
+    setIsInfoLoading(false)
+
   } catch (error) {
     console.error(error);
   }
 };
 
+
+
+
+
 useEffect(() => {
   // 페이지 진입시 딱 한번 실행
-  const newItem = {
-    id: 1,
-    lable: "Lable_1",
-    text: "",
-    value: "김치"
-  }
-  sendInfo([newItem]);
+  sendInfo(ingredientList);
   // eslint-disable-next-line react-hooks/exhaustive-deps
 }, []);
 
   // view
   return (
     <div className="w-full h-full px-6 pt-10 break-keep overflow-auto">
+         {/* START: 로딩 스피너 */}
       {isInfoLoading && (
         <div className="absolute inset-0 bg-white bg-opacity-70">
           <div className="absolute top-1/2 left-1/2 transform -translate-x-1/2 -translate-y-1/2">
@@ -84,7 +133,7 @@ useEffect(() => {
         </div>
       )}
 
-      {/* START: 로딩 스피너 */}
+   
       {/* START:뒤로가기 버튼 */}
       <PrevButton />
       {/* END:뒤로가기 버튼 */}
